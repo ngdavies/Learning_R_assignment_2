@@ -6,7 +6,7 @@
 ##
 ## source("cachematrix.R") # load this function
 ## testmat <- matrix(rnorm(16),nrow=4,ncol=4) # create some test data
-## cm <- makeCacheMatrix(testmat)
+## cm <- makeCacheMatrix(testmat) # create the cache
 ## cm$get() # get the matrix to check its value
 ## cm$getinv() # try to get the inverse. It should be NULL as it have not been calculated yet
 ## inv <- cacheSolve(cm) # use the companion function to calculate and cache the inverse. 
