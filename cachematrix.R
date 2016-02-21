@@ -1,107 +1,78 @@
-## Put comments here that give an overall description of what your
-## functions do
+## This file contains two functions that calculate and cache the result of a matrix inversion.
+## Caching the result of a matrix inversion is beneficial as the computation is costly and the 
+## result of the matrix inversion may be reused many times when analysing the data in the matrix.
+##
+## A typical session using these two funtions might look like this:
+##
+## source("cachematrix.R") # load this function
+## testmat <- matrix(rnorm(16),nrow=4,ncol=4) # create some test data
+## cm <- makeCacheMatrix(testmat)
+## cm$get() # get the matrix to check its value
+## cm$getinv() # try to get the inverse. It should be NULL as it have not been calculated yet
+## inv <- cacheSolve(cm) # use the companion function to calculate and cache the inverse. 
+## checkinv <- cm$getinv() # use the get method.
+## identical(inv,checkinv)
 
-## Write a short comment describing this function
 
+## This function provides storage to hold a matrix and its inverse.
+## It contains functions to set and get the matrix and the inverse.
+## This funcion is similar to a java class where the properties are 
+##   x - the matrix
+##   invx - the inverse
+## and the methods are
+##   set() - set a value for the matrix and initialise the inverse to NULL
+##   get() - get the current value of the matrix
+##   setinv() - set the value for the inverse
+##   getinv() - get the cached inverse (or NULL if it has never been set.
+## The input parameters to the function are
+##   x - the matrix to be cached
+## The output from the function is a list containing the four methods (functions) listed above.
+##
 makeCacheMatrix <- function(x = matrix()) {
-	  # Initialise the inverse to NULL in case getinv() is called before set()
+     # Initialise the inverse to NULL in case getinv() is called before set().
     invx <- NULL
-    # Create the function that caches the original matrix and initialised the cached inverse to NULL
+    # Create the set() function that caches the original matrix and initialises the cached inverse to NULL
     set <- function(y) {
         x <<- y
         invx <<- NULL
     }
-    # Create the function that returns the original matrix
-		get <- function() x
-    # Create the function the caches the inverse (that is calculted outside makeCacheMatrix
+    # Create the get() function that returns the original matrix
+    get <- function() x
+    # Create the setinv() function the caches the inverse. 
+		# Note, the inverse in NOT calculated in this function. It is only cached here.
     setinv <- function(inv) invx <<- inv
-    # Create the function that returns the cached inverse or NULL if the inverse has not been cached
+    # Create the getinv() function that returns the cached inverse or NULL if the inverse has not been cached.
     getinv <- function() invx
     # Return a list of function (pointers)
     list(set=set, get=get, setinv=setinv, getinv=getinv)
 }
 
 
-## Write a short comment describing this function
-
-cacheSolve <- function(x, ...) {
-        ## Return a matrix that is the inverse of 'x'
-    invx <- x$getinv()
+## This function uses the functions from makeCacheMatrix to cache a matrix and its inverse.
+## The matrix inverse is calculated only once in this function.
+## Input parameters
+##   cx - a cached matrix and inverse object represented as a list of functions created by calling makeCacheMatrix(x)
+## Ouput parameters
+##   invx - the inverse of the matrix used to create x (i.e. x used in makeCacheMatrix(x))
+##          return from the cache if available
+## Side effects                            
+##   calcuate and save the inverse of z in x if not already calculated 
+cacheSolve <- function(cx, ...) {
+	  # Get the inverse from the cache
+    invx <- cx$getinv()
+    # If the inverse is not NULL, it has been calculated already, so return it.
     if (!is.null(invx)) {
         message("getting cached inverse")
+        # Return the inverse recovered from the cache.
         return(invx)
     }
-    data <- x$get()
+    # Only get here if invx is NULL, i.e. not calculated and cached yet, so we need to calculated it now.
+    # Recover the matrix used to create cx.
+    data <- cx$get()
+    # Calculate the inverse.
     invx <- solve(data, ...)
-    x$setinv(invx)
+    # Cache the inverse in cx.
+    cx$setinv(invx)
+    # Return the inverse we have just calcuated.
     invx
 }
-
-
-#     # This is a kind of R class with properties
-#     #  x - the original vector of data
-#     #  m - the (possibly) cached mean of the vector x
-#     # and methods
-#     #  set     - set the property x
-#     #  get     - get the property x
-#     #  setmean - set (cache) the mean of the vector
-#     #  getmean - get the mean of the vector.
-#     # Note, this object does not calculate the mean, it just caches the value it is given
-#     # Whenever the object is reused with new input data (i.e. when set(x) is called, 
-#     #  the cached mean is reset to NULL until it is recalculated
-#     makeVector <- function(x = matrix()) {
-#         m <- NULL
-#         set <- function(y) {
-#             x <<- y
-#             m <<- NULL
-#         }
-#         get <- function() x
-#         setmean <- function(mean) m <<- mean
-#         getmean <- function(m) m
-#         list(set=set, get=get, setmean=setmean, getmean=getmean)
-#     }
-#     
-#     # This function returns the mean of the cached mean object
-#     # If the mean has never been calculated, it calculates and caches it
-#     # If the mean has already be calculated and cached, it returns the cached value
-#     # The works if the users calls makeVector to create a mean caching object
-#     # that is passed into this function.
-#     cachemean <- function(x, ...) {
-#         m <- x$getmean()
-#         if (!is.null(m)) {
-#             message("getting cached data")
-#             # Return the calculated mean recovered from the cache
-#             return(m)
-#         } else {
-#     				# The cache object indicates that the cached mean has not be calculated and cached
-#     				# Recover the data from the cache object
-#     				data <- x$get()
-#     				# Calcuate the mean, and does ... pass on any extra parameters?
-#     				m <- mean(data, ...)
-#     				# Cache the calculated mean.
-#     				x$setmean(m)
-#             # Return the newly calculated mean.
-#     				m
-#     		}
-#     }
-#     # Improvements I would make:
-#     #   - add another method hasCachedValue() that returns TRUE or FALSE
-#     #   - or, calculate the mean on creating the class so the cached value is immediately available
-#     #   (This would remove the need for the first function)
-#     #   - or, if user calls for getmean and it is null, calculate it.
-#         
-#     ##     
-#     ## cachemean <- function(x, ...) {
-#     ##     m <- x$getmean()
-#     ##     if (!is.null(m)) {
-#     ##         message("getting cached data")
-#     ##         return(m)
-#     ##     } 
-#     ##   data <- x$get()
-#     ##     m <- mean(data, ...)
-#     ##     x$setmean(m)
-#     ##     m
-#     ## }
-#     ##     
-#     
-#     
