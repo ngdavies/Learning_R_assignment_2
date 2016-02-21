@@ -8,28 +8,29 @@
 ## testmat <- matrix(rnorm(16),nrow=4,ncol=4) # create some test data
 ## cm <- makeCacheMatrix(testmat) # create the cache
 ## cm$get() # get the matrix to check its value
-## cm$getinv() # try to get the inverse. It should be NULL as it have not been calculated yet
-## inv <- cacheSolve(cm) # use the companion function to calculate and cache the inverse. 
-## checkinv <- cm$getinv() # use the get method.
-## identical(inv,checkinv)
+## cm$getinv() # Try to get the inverse. It should be NULL as it has not been calculated yet.
+## inv <- cacheSolve(cm) # Use the companion function to calculate and cache the inverse. 
+## checkinv <- cm$getinv() # Use the get() function to get the inverse from the cache.
+## identical(inv,checkinv) # Check the cached value is the same as the value we first calculated.
 
 
 ## This function provides storage to hold a matrix and its inverse.
-## It contains functions to set and get the matrix and the inverse.
-## This funcion is similar to a java class where the properties are 
+## This funcion is similar to a java class.
+## The properties (data) are 
 ##   x - the matrix
 ##   invx - the inverse
-## and the methods are
+## and the methods (functions) are
 ##   set() - set a value for the matrix and initialise the inverse to NULL
 ##   get() - get the current value of the matrix
 ##   setinv() - set the value for the inverse
-##   getinv() - get the cached inverse (or NULL if it has never been set.
+##   getinv() - get the cached inverse (or NULL if it has never been set).
 ## The input parameters to the function are
 ##   x - the matrix to be cached
-## The output from the function is a list containing the four methods (functions) listed above.
+## The output from the function is a list containing the four (functions) listed above.
+## By analogy to Java the output could be considered an instance of the class.
 ##
 makeCacheMatrix <- function(x = matrix()) {
-     # Initialise the inverse to NULL in case getinv() is called before set().
+    # Initialise the inverse to NULL in case getinv() is called before set().
     invx <- NULL
     # Create the set() function that caches the original matrix and initialises the cached inverse to NULL
     set <- function(y) {
@@ -48,13 +49,15 @@ makeCacheMatrix <- function(x = matrix()) {
 }
 
 
-## This function uses the functions from makeCacheMatrix to cache a matrix and its inverse.
+## This function has two roles.
+##   It returns the inverse of a matrix to the caller.
+##   It uses the functions from makeCacheMatrix to cache a matrix and its inverse.
 ## The matrix inverse is calculated only once in this function.
 ## Input parameters
 ##   cx - a cached matrix and inverse object represented as a list of functions created by calling makeCacheMatrix(x)
 ## Ouput parameters
 ##   invx - the inverse of the matrix used to create x (i.e. x used in makeCacheMatrix(x))
-##          return from the cache if available
+##          returned from the cache if available.
 ## Side effects                            
 ##   calcuate and save the inverse of z in x if not already calculated 
 cacheSolve <- function(cx, ...) {
